@@ -124,13 +124,22 @@
     var: map_module_packages
   when: ansible_verbosity > 1
         
+- name: Assign Main Module Packages 
+  set_fact:
+    modules_found: "{{ modules_found | combine( { package_data.value['module.main'] : package_data.value.package } ) }}"  
+  loop: "{{ list_packages | dict2items }}" 
+  loop_control:
+    loop_var: package_data
+  when: package_data.value['module.main'] in modules_found
+        
 - name: Assign Found Packages 
   set_fact:
     modules_found: "{{ modules_found | combine( { module_found.key : map_module_packages[module_found.key] } ) }}"  
   loop: "{{ modules_found | dict2items }}" 
   loop_control:
     loop_var: module_found
-  when: module_found.key in map_module_packages
+  when: module_found.value == ''
+    and module_found.key in map_module_packages
                 
 - name: Found Module Packages 1
   debug:

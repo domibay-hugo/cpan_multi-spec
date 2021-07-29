@@ -58,4 +58,20 @@ And actually they are not.)
     $ ansible-playbook -i 'localhost,' created_sources.yml --connection=local \
       -e '{"module_search":["Sub::Name", "Package::Stash", "Sub::Identify", "Dist::CheckConflicts", "Eval::Closure", "Devel::StackTrace", "Eval::Closure", "Package::DeprecationManager", "Package::Stash", "Package::Stash::XS"]}'
 
+As a Result the Distributions that are downloaded are:
+
+    TASK [Modules Found List 3] ************************************************************************
+    ok: [localhost] => {
+        "modules_found": {
+            "Devel::StackTrace": "Devel-StackTrace",
+            "Dist::CheckConflicts": "Dist-CheckConflicts",
+            "Eval::Closure": "Eval-Closure",
+            "Package::DeprecationManager": "Package-DeprecationManager",
+            "Package::Stash": "Package-Stash",
+            "Package::Stash::XS": "Package-Stash-XS",
+            "Sub::Identify": "Sub-Identify",
+            "Sub::Name": "Sub-Name"
+        }
+    }
+
 =cut

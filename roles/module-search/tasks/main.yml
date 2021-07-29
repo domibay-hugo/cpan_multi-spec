@@ -44,7 +44,7 @@
   when: module_search is defined
     and module_search | length > 0
 
-- name: Found Packages for Requested Module Names
+- name: Setup Found Packages for Requested Module Names
   set_fact:
     modules_found: "{{ modules_found | combine( { item : '' } ) }}"
   loop: "{{ module_search }}"

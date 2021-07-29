@@ -28,6 +28,7 @@
 - name: Copy Requested Module Names
   set_fact:
     download_directory: "{{ source_directory | default('roles/module-download/download') }}"
+    downloaded_files: []
                  
 - name: Create the Download Directory
   file: 
@@ -43,23 +44,34 @@
     loop_var: package_data
   register: package_download_rs
                
-- name: Download List 0
+- name: Download Result 0
   debug:
     var: package_download_rs
   when: ansible_verbosity > 1    
+
+- name: Parse Extensions for downloaded Packages
+  set_fact:
+    downloaded_files: "{{ downloaded_files + [{'path': download_rs.dest, 'file': download_rs.dest | basename , 'extension': download_rs.dest | regex_search('((\\.[^\\.]{1,4})?\\.[^\\.]{1,4})$') }] }}"
+  loop: "{{ package_download_rs.results }}"
+  loop_control:
+    loop_var: download_rs
+    index_var: download_idx
+  when: not download_rs.failed
                
 - name: Downloaded Files 0
   debug:
-    msg: "pkg abs pth: '{{ item.dest | realpath }}'"
-  loop: "{{ package_download_rs.results }}"
+    var: downloaded_files
+  when: ansible_verbosity > 1    
 
 - name: Extract downloaded Package into Download Directory
   command:
-    cmd: "tar -xzf {{ item.dest }} -C {{ download_directory }}"
+    cmd: "tar -xzf {{ item.file }}"
+    chdir: "{{ download_directory }}"
     warn: false
-  loop: "{{ package_download_rs.results }}"
+  changed_when: false
+  loop: "{{ downloaded_files }}"
   register: package_extract_rs
-  when: not item.failed
+  when: item.extension == '.tar.gz'
                
 - name: Extract List 0
   debug:
