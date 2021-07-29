@@ -1,2 +1,5 @@
 #Project Configuration Files
 .project
+
+#Exclude Downloaded Packages
+roles/module-download/download/*

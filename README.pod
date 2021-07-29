@@ -1,0 +1,54 @@
+=head1 NAME
+
+cpan_multi-spec - Ansible Automation to create multiple I<RPM> F<.spec> Files from I<Perl> Module Names
+
+=head1 SYNOPSIS
+
+Create Packages for a List of I<Perl> Module Names
+
+    $ ansible-playbook -i 'localhost,' created_sources.yml --connection=local \
+      -e '{"module_search":["Namespace1::Module1", "Namespace2::Module2", "Namespace1::Module3"]}'
+
+Search for I<Perl> Module Name Suggestions for a File Name
+
+    $ ansible-playbook -i 'localhost,' created_sources.yml --connection=local \
+      -e 'file_search="some/missing/file.pm"'
+
+=head1 DESCRIPTION
+
+This C<Ansible Automation> will search I<Perl> Packages with the MetaCPAN API, download
+the Sources and build the RPM F<.spec> Files from their Project Configurations
+
+=head1 Use Cases
+
+Create missing Packages that are required for the Installation of some Software but have not been
+published yet
+
+    # yum -y install perl-Moose
+    CentOS Linux 8 - AppStream                      7.6 kB/s | 4.3 kB     00:00
+    CentOS Linux 8 - AppStream                      6.7 MB/s | 8.2 MB     00:01
+    CentOS Linux 8 - BaseOS                         4.3 kB/s | 3.9 kB     00:00
+    CentOS Linux 8 - BaseOS                         2.2 MB/s | 4.5 MB     00:02
+    CentOS Linux 8 - Extras                         1.5 kB/s | 1.5 kB     00:00
+    Extra Packages for Enterprise Linux Modular 8 -  12 kB/s |  37 kB     00:03
+    Extra Packages for Enterprise Linux Modular 8 - 457 kB/s | 798 kB     00:01
+    Extra Packages for Enterprise Linux 8 - x86_64   60 kB/s |  23 kB     00:00
+    Extra Packages for Enterprise Linux 8 - x86_64  2.9 MB/s |  10 MB     00:03
+    Error:
+     Problem: conflicting requests
+      - nothing provides perl(Sub::Name) needed by perl-Moose-2.2011-9.el8.x86_64
+      - nothing provides perl(Package::Stash) needed by perl-Moose-2.2011-9.el8.x86_64
+      - nothing provides perl(Sub::Identify) needed by perl-Moose-2.2011-9.el8.x86_64
+      - nothing provides perl(Dist::CheckConflicts) needed by perl-Moose-2.2011-9.el8.x86_64
+      - nothing provides perl(Eval::Closure) needed by perl-Moose-2.2011-9.el8.x86_64
+      - nothing provides perl(Devel::StackTrace) >= 2.03 needed by perl-Moose-2.2011-9.el8.x86_64
+      - nothing provides perl(Dist::CheckConflicts) >= 0.02 needed by perl-Moose-2.2011-9.el8.x86_64
+      - nothing provides perl(Eval::Closure) >= 0.04 needed by perl-Moose-2.2011-9.el8.x86_64
+      - nothing provides perl(Package::DeprecationManager) >= 0.07 needed by perl-Moose-2.2011-9.el8.x86_64
+      - nothing provides perl(Package::DeprecationManager) >= 0.11 needed by perl-Moose-2.2011-9.el8.x86_64
+      - nothing provides perl(Package::Stash) >= 0.32 needed by perl-Moose-2.2011-9.el8.x86_64
+      - nothing provides perl(Package::Stash::XS) >= 0.24 needed by perl-Moose-2.2011-9.el8.x86_64
+      - nothing provides perl(Sub::Name) >= 0.20 needed by perl-Moose-2.2011-9.el8.x86_64
+    (try to add '--skip-broken' to skip uninstallable packages or '--nobest' to use not only best candidate packages)
+
+=cut
