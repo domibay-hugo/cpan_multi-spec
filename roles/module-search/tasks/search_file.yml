@@ -42,9 +42,11 @@
 - name: Search Template
   debug:
     var: search_template
+  when: ansible_verbosity > 1
 - name: Query for Module Search by File Path
   debug:
     var: cpan_query
+  when: ansible_verbosity > 1
         
 - name: Execute the Search Call on the CPAN API
   command: 
@@ -70,6 +72,7 @@
 - name: Module List 0
   debug:
     var: cpan_modules_rs
+  when: ansible_verbosity > 1
             
 - name: Flatten List Module Files 
   set_fact:
@@ -81,6 +84,7 @@
 - name: Flattened List Module Files 1
   debug:
     var: list_module_files
+  when: ansible_verbosity > 1
         
 - name: Map List Module Packages 
   set_fact:
@@ -92,6 +96,7 @@
 - name: Map Module Packages 1
   debug:
     var: map_module_files
+  when: ansible_verbosity > 1
                     
 - name: Assign Found Modules 
   set_fact:

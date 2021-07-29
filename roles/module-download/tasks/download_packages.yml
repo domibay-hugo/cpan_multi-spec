@@ -25,7 +25,6 @@
   when: list_packages is undefined
     or list_packages | length == 0
                                       
-                           
 - name: Copy Requested Module Names
   set_fact:
     download_directory: "{{ source_directory | default('roles/module-download/download') }}"
@@ -47,6 +46,7 @@
 - name: Download List 0
   debug:
     var: package_download_rs
+  when: ansible_verbosity > 1    
                
 - name: Downloaded Files 0
   debug:
@@ -64,6 +64,7 @@
 - name: Extract List 0
   debug:
     var: package_extract_rs
+  when: ansible_verbosity > 1
   
 #- name: Extract downloaded Package into Download Directory
 #  ansible.builtin.unarchive:
