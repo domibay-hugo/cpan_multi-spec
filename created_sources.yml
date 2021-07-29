@@ -1,0 +1,61 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-19
+# @package RPM Packaging for Perl
+# @subpackage created_sources.yml
+
+# This playbook downloads the Sources for a List of Modules
+#
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+# - Extra Vars "file_search" for the Module Search by File must be given
+# - The Extra Vars JSON List "module_search" with Module Names must be given
+# JSON List "modules": 
+# -e '{"module_search":["Namespace1::Module1", "Namespace2::Module2", "Namespace1::Module3"]}'
+#
+# Run:
+# $ ansible-playbook -i 'localhost,' created_sources.yml --connection=local
+#
+
+
+
+- name: Download Sources and Create '.spec' Files
+  hosts: localhost
+  gather_facts: no
+  vars:
+    #The List of Source Packages to download
+    list_packages: {}
+    #The List of Packages that have been discovered for the Requested Modules     
+    modules_found: {}    
+#    module_search:
+#      - Nmaespace1::Module1
+#      - Namespace2::Module2
+#      - Namespace1::Module3
+#    file_search: "file/data.pm"
+  tasks:   
+    # Search the Package Names from User Input
+    - name: Search the Package Names
+      include_role:
+        name: module-search
+      when:  module_search is defined
+        or file_search is defined  
+    
+    - name: Package List 3
+      debug:
+        var: list_packages
+      when: list_packages is defined        
+    
+    - name: Modules Found List 3
+      debug:
+        var: modules_found
+      when: modules_found is defined        
+
+    - name: Download the Found Packages
+      include_role:
+        name: module-download
+      when: list_packages | length > 0
+    

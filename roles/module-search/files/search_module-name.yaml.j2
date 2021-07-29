@@ -1,0 +1,45 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-20
+# @package RPM Packaging for Perl
+# @subpackage roles/module-search/files/search_module-name.yaml.j2
+
+# This Template builds the JSON Query for the Module Search by Module Names
+#
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+#
+#---------------------------------
+# External Parameters:
+# - "modules_requested": Array of Module Names to lookup
+#
+
+
+
+query:
+  match_all: {}
+filter:
+  and:
+    - or:{{ "\n" }}
+{%- for module_name in modules_requested %}
+        - term:
+            module.name: "{{ module_name }}"{{ "\n" }}
+{%- endfor %}
+    - term:
+        status: "latest"
+fields:
+  - module.name
+  - documentation
+  - version
+  - release
+  - abstract
+  - description
+  - name
+  - path
+  - level
+  - status
+  - download_url

@@ -1,0 +1,109 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-28
+# @package RPM Packaging for Perl
+# @subpackage roles/module-search/tasks/search_file.yml
+
+# This playbook executes the Module Search for a given partial File Path
+# The Search Query will give up to 10 Suggestions
+#
+#---------------------------------
+# Requirements:
+# - The System Command "wget" must be installed
+#
+#---------------------------------
+# Configurations:
+# - "cpan" API Access must be configured
+#
+#---------------------------------
+# External Parameters:
+# - "api_host": The Host Name of the API Server
+# - "api_mainpath": The Pathof the Search Functionality to submit the Call to
+# - "file_search": Partial File Path as String to search the Module for
+# - "modules_found": Mapping of Suggested Files to Found Modules
+#
+
+
+         
+- name: File Path is required
+  meta: end_play
+  when: file_search is undefined
+    or file_search == ''
+         
+- name: Read Search Template
+  set_fact:
+    search_template: "{{ lookup('template', 'roles/module-search/files/search_module-file.yaml.j2') }}"
+        
+- name: Build Query for Module Search by File
+  set_fact:
+    cpan_query: "{{ search_template | from_yaml }}"
+                
+- name: Search Template
+  debug:
+    var: search_template
+- name: Query for Module Search by File Path
+  debug:
+    var: cpan_query
+        
+- name: Execute the Search Call on the CPAN API
+  command: 
+    cmd: >
+      wget -U 'Ansible' --post-data='{{ cpan_query | to_json | regex_replace("/", "\\\\/") }}' -S -O - 'https://{{ api_host }}{{ api_mainpath }}'
+    warn: false
+  # The "uri" Ansible Module sends a broken call that is not recognized correctly 
+  #uri:
+  #  url: https://{{ api_host }}{{ api_mainpath }}
+  #  body_format: json
+  #  body: "{{ cpan_query_json }}"
+  #  return_content: yes
+  register: cpan_search_rs
+  changed_when: false
+  #delegate_to: localhost
+
+- name: Build Module Data Result from Search Result
+  set_fact:
+    cpan_modules_rs: "{{ cpan_search_rs.stdout | from_json }}"        
+    list_module_files: []
+    map_module_files: {}
+                
+- name: Module List 0
+  debug:
+    var: cpan_modules_rs
+            
+- name: Flatten List Module Files 
+  set_fact:
+    list_module_files: "{{ list_module_files + [ module_data.fields['module.name'] ] | flatten | product([ module_data.fields.path ] ) | list }}"  
+  loop: "{{ cpan_modules_rs.hits.hits }}" 
+  loop_control:
+    loop_var: module_data
+                
+- name: Flattened List Module Files 1
+  debug:
+    var: list_module_files
+        
+- name: Map List Module Packages 
+  set_fact:
+    map_module_files: "{{ map_module_files | combine( { module_file[0] : {'module': module_file[0], 'path': module_file[1], 'match': module_file[1] | regex_search(file_search + '$', ignorecase=True) }  } ) }}"  
+  loop: "{{ list_module_files }}" 
+  loop_control:
+    loop_var: module_file
+                
+- name: Map Module Packages 1
+  debug:
+    var: map_module_files
+                    
+- name: Assign Found Modules 
+  set_fact:
+    modules_found: "{{ modules_found | combine( { module_file.value.module : module_file.value.path } ) }}"  
+  loop: "{{ map_module_files | dict2items }}" 
+  loop_control:
+    loop_var: module_file
+  when: module_file.value.match
+        
+#- name: Parsing File Names
+#  set_fact:
+#  #Add the Result to the Data of hostvars[inventory_hostname]
+#    list_module_names: "{{ list_module_names + [ item.fied | regex_replace('^.*/([^\\/]+)$', '\\1') ] }}"
+#  loop: "{{ cpan_modules_rs.hits.hits }}"
+        

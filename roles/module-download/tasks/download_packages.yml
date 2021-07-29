@@ -1,0 +1,74 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-28
+# @package RPM Packaging for Perl
+# @subpackage roles/module-download/tasks/download_packages.yml
+
+# This playbook downloads the Package from the found Download Link
+#
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+#
+#---------------------------------
+# External Parameters:
+# - "list_packages": Dictionary of Found Packages
+#
+
+
+
+- name: Package List is required
+  meta: end_play
+  when: list_packages is undefined
+    or list_packages | length == 0
+                                      
+                           
+- name: Copy Requested Module Names
+  set_fact:
+    download_directory: "{{ source_directory | default('roles/module-download/download') }}"
+                 
+- name: Create the Download Directory
+  file: 
+    path: "{{ download_directory }}/" 
+    state: directory 
+                                      
+- name: Download Found Packages
+  get_url:
+    url: "{{ package_data.value.download_url }}"
+    dest: "{{ download_directory }}"
+  loop: "{{ list_packages | dict2items }}"
+  loop_control:
+    loop_var: package_data
+  register: package_download_rs
+               
+- name: Download List 0
+  debug:
+    var: package_download_rs
+               
+- name: Downloaded Files 0
+  debug:
+    msg: "pkg abs pth: '{{ item.dest | realpath }}'"
+  loop: "{{ package_download_rs.results }}"
+
+- name: Extract downloaded Package into Download Directory
+  command:
+    cmd: "tar -xzf {{ item.dest }} -C {{ download_directory }}"
+    warn: false
+  loop: "{{ package_download_rs.results }}"
+  register: package_extract_rs
+  when: not item.failed
+               
+- name: Extract List 0
+  debug:
+    var: package_extract_rs
+  
+#- name: Extract downloaded Package into Download Directory
+#  ansible.builtin.unarchive:
+#    src: "{{ item.dest | realpath }}"
+#    dest: "{{ download_directory }}"
+#  loop: "{{ package_download_rs.results }}"
+#  when: not item.failed
+    

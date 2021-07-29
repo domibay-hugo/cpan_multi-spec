@@ -1,0 +1,147 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-28
+# @package RPM Packaging for Perl
+# @subpackage roles/module-search/tasks/search_module.yml
+
+# This playbook executes the Module Search for a given partial File Path
+# The Search Query will give up to 10 Suggestions
+#
+#---------------------------------
+# Requirements:
+# - The System Command "wget" must be installed
+#
+#---------------------------------
+# Configurations:
+# - "cpan" API Access must be configured
+#
+#---------------------------------
+# External Parameters:
+# - "api_host": The Host Name of the API Server
+# - "api_mainpath": The Pathof the Search Functionality to submit the Call to
+# - "module_search": Array of Module Names to lookup
+# - "modules_found": Mapping of Requested Modules to Found Packages
+# - "modules_searched": Array of Module Names that have been searched already
+# - "list_packages": Dictionary of Found Packages
+#
+
+
+
+# An empty Module Search List will make the API Call fail         
+- name: Module Search List is required
+  meta: end_play
+  when: modules_requested is undefined
+    or modules_requested | length == 0
+                   
+- name: Read Search Template
+  set_fact:
+    modules_searched: "{{ modules_searched + modules_requested }}"
+    search_template: "{{ lookup('template', 'roles/module-search/files/search_module-name.yaml.j2') }}"
+        
+- name: Build Query for Module Search by File
+  set_fact:
+    cpan_query: "{{ search_template | from_yaml }}"
+                
+- name: Search Template
+  debug:
+    var: search_template
+- name: Query for Module Search by File Path
+  debug:
+    var: cpan_query
+        
+- name: Perform the Search on the CPAN API
+  command: 
+    cmd: >
+      wget -U 'Ansible' --post-data='{{ cpan_query | to_json | regex_replace("/", "\\\\/") }}' -S -O - 'https://{{ api_host }}{{ api_mainpath }}'
+    warn: false
+  #uri:
+  #  url: https://{{ api_host }}{{ api_mainpath }}
+  #  body_format: json
+  #  body: "{{ cpan_query_json }}"
+  #  return_content: yes
+  register: cpan_search_rs
+  changed_when: false
+
+- name: Build Module Data Result from Search Result
+  set_fact:
+    cpan_modules_rs: "{{ cpan_search_rs.stdout | from_json }}"        
+    list_module_packages: []
+    map_module_packages: {}
+    #Reset the Module Search List  
+    modules_requested: "{{ '[]' | from_json }}"      
+                
+- name: Module List 0
+  debug:
+    var: cpan_modules_rs
+        
+- name: Parsing Package Names
+  set_fact:
+    #Build the Package Name from the Release Name
+    #Organize the Results by Package Name   
+    list_packages: "{{ list_packages | combine( { module_rs.fields.release | regex_replace('(.*)-[^\\-]+$', '\\1') : module_rs.fields | combine( {'api_id': module_rs._id, 'package': module_rs.fields.release | regex_replace('^(.*)-[^\\-]+$', '\\1'), 'release.version': module_rs.fields.release | regex_replace('.*-([^\\-]+)$', '\\1') } ) } ) }}"
+  loop: "{{ cpan_modules_rs.hits.hits }}"
+  loop_control:
+    loop_var: module_rs
+        
+- name: Parsing Main Module Names
+  set_fact:
+    #Build the Main Module Name from Package Name
+    list_packages: "{{ list_packages | combine( { package_data.key : package_data.value | combine( {'module.main': package_data.value.package | regex_replace('\\-', '::') } ) } ) }}"
+  loop: "{{ list_packages | dict2items }}"
+  loop_control:
+    loop_var: package_data
+                
+- name: Package List 1
+  debug:
+    var: list_packages
+        
+- name: Flatten List Module Packages 
+  set_fact:
+    list_module_packages: "{{ list_module_packages + [ package_data.value['module.name'] ] | flatten | product([ package_data.key ]) | list }}"  
+  loop: "{{ list_packages | dict2items }}" 
+  loop_control:
+    loop_var: package_data
+                
+- name: Flattened List Module Packages 1
+  debug:
+    var: list_module_packages
+        
+- name: Map List Module Packages 
+  set_fact:
+    map_module_packages: "{{ map_module_packages | combine( { module_package[0] : module_package[1] } ) }}"  
+  loop: "{{ list_module_packages }}" 
+  loop_control:
+    loop_var: module_package
+                
+- name: Map Module Packages 1
+  debug:
+    var: map_module_packages
+        
+- name: Assign Found Packages 
+  set_fact:
+    modules_found: "{{ modules_found | combine( { module_found.key : map_module_packages[module_found.key] } ) }}"  
+  loop: "{{ modules_found | dict2items }}" 
+  loop_control:
+    loop_var: module_found
+  when: module_found.key in map_module_packages
+                
+- name: Found Module Packages 1
+  debug:
+    var: modules_found
+        
+- name: Set Package Names for found Requested Modules
+  set_fact:
+    #Check Searched Module Name against Main Module Name
+    #Add missing Main Modules to the Module Search List
+    modules_requested: "{{ modules_requested + [ package_data.value['module.main'] ] }}"
+  loop: "{{ list_packages | dict2items }}"
+  loop_control:
+    loop_var: package_data
+  when: package_data.value['module.main'] not in modules_searched
+    and package_data.value['module.main'] not in package_data.value['module.name']
+                
+- name: Module Search List 2
+  debug:
+    var: modules_requested
+        

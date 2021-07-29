@@ -1,0 +1,83 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-28
+# @package RPM Packaging for Perl
+# @subpackage roles/module-search/tasks/main.yml
+
+# This playbook executes the Tasks to find the Packages to download
+#
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+# - "cpan" API Access must be configured
+#
+#---------------------------------
+# External Parameters:
+# - "file_search": Partial File Path as String to search the Module for
+# - "module_search": Array of Module Names to lookup
+# - "modules_found": Mapping of Requested Modules to Found Packages
+# - "list_packages": Dictionary of Found Packages
+#
+
+
+
+- name: Import "cpan" Group Settings
+  include_vars: 
+    dir: ../../../group_vars/cpan/
+    ignore_unknown_extensions: True
+    extensions:
+      - 'yml'
+
+- name: Copy Requested File
+  set_fact:
+    file_requested: "{{ file_search }}"
+  when: file_search is defined
+    and file_search != ''
+
+- name: Copy Requested Module Names
+  set_fact:
+    modules_requested: "{{ module_search }}"
+    modules_searched: []
+  when: module_search is defined
+    and module_search | length > 0
+
+- name: Found Packages for Requested Module Names
+  set_fact:
+    modules_found: "{{ modules_found | combine( { item : '' } ) }}"
+  loop: "{{ module_search }}"
+  when: module_search is defined
+    and module_search | length > 0
+
+- name: Search Module Suggestions for File Path 
+  include_tasks: search_file.yml
+  when: file_requested is defined
+
+- name: Lookup Packages by Module Names (Initial) 
+  include_tasks: search_module.yml
+#  include: search_module.yml
+#  static: no
+# Until Loop does not work Condition is not evaluated and Include is not repeated
+#  until: modules_requested | length == 0
+  when: modules_requested is defined
+    and modules_requested | length > 0
+
+- name: Lookup Packages for Discovered Module Names (1. Requeue) 
+  include_tasks: search_module.yml
+  when: modules_requested is defined
+    and modules_requested | length > 0
+
+- name: Lookup Packages for Discovered Module Names (2. Requeue) 
+  include_tasks: search_module.yml
+  when: modules_requested is defined
+    and modules_requested | length > 0
+                
+- name: Module Search Pending List Final
+  debug:
+    var: modules_requested
+  failed_when: modules_requested | length > 0
+  when: modules_requested is defined
+    and modules_requested | length > 0
+        

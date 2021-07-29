@@ -1,0 +1,37 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-20
+# @package RPM Packaging for Perl
+# @subpackage roles/module-search/files/search_module-file.yaml.j2
+
+# This Template builds the JSON Query for the Module Search by File Path
+# This Search Query will list up to 10 Suggestions that are scored by Relevance
+#
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+#
+#---------------------------------
+# External Parameters:
+# - "file_search": Partial File Path as String to search the Module for
+#
+
+
+
+query:
+  query_string:
+    query: "{{ file_search }}"
+    #The Restriction of Fields hinders the Search to succeed
+    #fields: ["path"]
+filter:
+  and:
+    - term:
+        status: "latest"
+    - exists:
+        #Indexed Single Files are not suitable for Packging
+        field: "module.name"
+fields: ["module.name", "documentation", "release", "maturity", "status", "name", "path", "level", "download_url"]
+size: 10

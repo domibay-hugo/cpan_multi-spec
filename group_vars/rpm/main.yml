@@ -1,0 +1,21 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-14
+# @package Software Packaging
+# @subpackage group_vars/rpm/main.yml
+
+# Configuration Values common for "rpm" Packaging
+#
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+# - The Host must be in the "rpm" Group
+#
+
+
+
+source_directory: "~/rpmbuild/SOURCES"
+spec_directory: "~/rpmbuild/SPECS"

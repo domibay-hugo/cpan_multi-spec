@@ -1,0 +1,21 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-16
+# @package Host Definition
+# @subpackage host_vars/localhost/main.yml
+
+# These Configuration Variables define the Host
+#
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+#
+
+
+
+#source_directory: "~/rpmbuild/SOURCES"
+#spec_directory: "~/rpmbuild/SPECS"
+

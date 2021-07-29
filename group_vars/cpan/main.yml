@@ -1,0 +1,20 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-14
+# @package Software Packaging
+# @subpackage group_vars/cpan/main.yml
+
+# Configuration Values common for "cpan" Packaging
+#
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+# - The Host must be in the "cpan" Group
+#
+
+
+api_host: "fastapi.metacpan.org"
+api_mainpath: "/v1/file/_search"
