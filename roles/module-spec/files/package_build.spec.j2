@@ -1,0 +1,66 @@
+#
+# SPEC File for Perl Module Devel::GlobalDestruction
+#
+
+
+%define module_name Devel::GlobalDestruction
+%define distribution Devel-GlobalDestruction
+
+
+Name:           perl-%{distribution}
+Version:        0.09
+Release:        1%{?dist}
+Summary:        Make simple lightweight record-like structures
+License:        GPL+ or Artistic
+Group:          Development/Libraries
+URL:            https://metacpan.org/pod/%{module_name}
+Source:         %{distribution}-%{version}.tar.gz
+
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+BuildArch:      noarch
+
+BuildRequires:  perl(Module::Build)
+BuildRequires:  perl(Test::Fatal)
+BuildRequires:  perl(Test::More) >= 0.88
+
+
+%description
+Struct::Dumb creates record-like structure types, similar to the struct
+keyword in C, C++ or C#, or Record in Pascal. An invocation of this module
+will create a construction function which returns new object references
+with the given field values. These references all respond to lvalue methods
+that access or modify the values stored.
+
+
+%prep
+%setup -q -n %{distribution}-%{version}
+
+
+%build
+%{__perl} Build.PL installdirs=vendor
+./Build
+
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+./Build install destdir=$RPM_BUILD_ROOT create_packlist=0
+find $RPM_BUILD_ROOT -depth -type d -exec rmdir {} 2>/dev/null \;
+
+%{_fixperms} $RPM_BUILD_ROOT/*
+
+
+%check
+./Build test
+
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+
+%files
+%defattr(-,root,root,-)
+%doc Changes LICENSE META.json README
+%{perl_vendorlib}/*
+%{_mandir}/man3/*

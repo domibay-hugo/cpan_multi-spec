@@ -3,3 +3,4 @@
 
 #Exclude Downloaded Packages
 roles/module-download/download/*
+download/*

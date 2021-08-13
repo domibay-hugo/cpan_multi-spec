@@ -1,0 +1,71 @@
+#
+# SPEC File for Perl Module Devel::GlobalDestruction
+#
+
+
+%define module_name Devel::GlobalDestruction
+%define distribution Devel-GlobalDestruction
+
+
+Name:           perl-%{distribution}
+Version:        1.50
+Release:        1%{?dist}
+Summary:        Scalar::List::Utils Perl module
+License:        GPL+ or Artistic
+Group:          Development/Libraries
+URL:            https://metacpan.org/pod/%{module_name}
+Source:         %{distribution}-%{version}.tar.gz
+
+BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+
+BuildRequires:  perl >= 0:5.006
+BuildRequires:  perl(ExtUtils::MakeMaker)
+BuildRequires:  perl(Test::More)
+
+Requires:       perl(Test::More)
+#Compiled Packages need Compatibility Restrictions
+Requires:       perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+
+
+%description
+This package contains a selection of subroutines that people have expressed
+would be nice to have in the perl core, but the usage would not really be
+high enough to warrant the use of a keyword, and the size so small such
+that being individual extensions would be wasteful.
+
+
+%prep
+%setup -q -n %{distribution}-%{version}
+
+
+%build
+%{__perl} Makefile.PL INSTALLDIRS=vendor OPTIMIZE="$RPM_OPT_FLAGS"
+make %{?_smp_mflags}
+
+
+%install
+rm -rf $RPM_BUILD_ROOT
+
+make pure_install PERL_INSTALL_ROOT=$RPM_BUILD_ROOT
+
+find $RPM_BUILD_ROOT -type f -name .packlist -exec rm -f {} \;
+find $RPM_BUILD_ROOT -type f -name '*.bs' -size 0 -exec rm -f {} \;
+find $RPM_BUILD_ROOT -depth -type d -exec rmdir {} 2>/dev/null \;
+
+%{_fixperms} $RPM_BUILD_ROOT/*
+
+
+%check
+make test
+
+
+%clean
+rm -rf $RPM_BUILD_ROOT
+
+
+%files
+%defattr(-,root,root,-)
+%doc Changes META.json README
+%{perl_vendorlib}/*
+%{perl_vendorarch}/*
+%{_mandir}/man3/*

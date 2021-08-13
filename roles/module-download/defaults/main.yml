@@ -1,0 +1,22 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-29
+# @package RPM Packaging for Perl
+# @subpackage roles/module-download/defaults/main.yml
+
+# Default Configurations for the "module-download" Role
+#
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+#
+
+
+user_agent_download: "cpan_multi-spec Client"
+
+source_directory: "download"
+#spec_directory: "~/rpmbuild/SPECS"
+

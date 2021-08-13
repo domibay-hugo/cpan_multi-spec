@@ -74,4 +74,9 @@ As a Result the Distributions that are downloaded are:
         }
     }
 
+
+    # perl t/api/bad_request.t
+    Can't locate YAML/Tiny.pm in @INC (you may need to install the YAML::Tiny module) (@INC contains: /metacpan-api/t/api/../lib /metacpan-api/t/api/../../lib /usr/local/lib/perl5/site_perl/5.30.1/x86_64-linux-gnu /usr/local/lib/perl5/site_perl/5.30.1 /usr/local/lib/perl5/vendor_perl/5.30.1/x86_64-linux-gnu /usr/local/lib/perl5/vendor_perl/5.30.1 /usr/local/lib/perl5/5.30.1/x86_64-linux-gnu /usr/local/lib/perl5/5.30.1) at t/api/bad_request.t line 13.
+    BEGIN failed--compilation aborted at t/api/bad_request.t line 13.
+
 =cut

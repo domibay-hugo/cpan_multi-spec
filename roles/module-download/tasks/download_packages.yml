@@ -1,7 +1,7 @@
 ---
 #
 # @author Bodo (Hugo) Barwich
-# @version 2021-07-28
+# @version 2021-07-29
 # @package RPM Packaging for Perl
 # @subpackage roles/module-download/tasks/download_packages.yml
 
@@ -25,20 +25,16 @@
   when: list_packages is undefined
     or list_packages | length == 0
                                       
-- name: Copy Requested Module Names
-  set_fact:
-    download_directory: "{{ source_directory | default('roles/module-download/download') }}"
-    downloaded_files: []
-                 
 - name: Create the Download Directory
   file: 
-    path: "{{ download_directory }}/" 
+    path: "{{ source_directory }}/" 
     state: directory 
                                       
 - name: Download Found Packages
   get_url:
     url: "{{ package_data.value.download_url }}"
-    dest: "{{ download_directory }}"
+    dest: "{{ source_directory }}"
+    http_agent: "{{ user_agent_download }}"
   loop: "{{ list_packages | dict2items }}"
   loop_control:
     loop_var: package_data
@@ -51,7 +47,7 @@
 
 - name: Parse Extensions for downloaded Packages
   set_fact:
-    downloaded_files: "{{ downloaded_files + [{'path': download_rs.dest, 'file': download_rs.dest | basename , 'extension': download_rs.dest | regex_search('((\\.[^\\.]{1,4})?\\.[^\\.]{1,4})$') }] }}"
+    downloaded_files: "{{ downloaded_files | default([]) + [{'package': download_rs.package_data.key, 'path': download_rs.dest, 'file': download_rs.dest | basename , 'extension': download_rs.dest | regex_search('((\\.[^\\.]{1,4})?\\.[^\\.]{1,4})$') }] }}"
   loop: "{{ package_download_rs.results }}"
   loop_control:
     loop_var: download_rs
@@ -65,8 +61,8 @@
 
 - name: Extract downloaded Package into Download Directory
   command:
-    cmd: "tar -xzf {{ item.file }}"
-    chdir: "{{ download_directory }}"
+    cmd: "tar -vxzf {{ item.file }}"
+    chdir: "{{ source_directory }}"
     warn: false
   changed_when: false
   loop: "{{ downloaded_files }}"
@@ -77,11 +73,17 @@
   debug:
     var: package_extract_rs
   when: ansible_verbosity > 1
-  
-#- name: Extract downloaded Package into Download Directory
-#  ansible.builtin.unarchive:
-#    src: "{{ item.dest | realpath }}"
-#    dest: "{{ download_directory }}"
-#  loop: "{{ package_download_rs.results }}"
-#  when: not item.failed
-    
+          
+- name: Assign Extracted Directory
+  set_fact:
+    #Build the Main Module Name from Package Name
+    list_packages: "{{ list_packages | combine( { extract_rs.item.package : list_packages[extract_rs.item.package] | combine( {'directory': extract_rs.stdout_lines[0]} ) } ) }}"
+  loop: "{{ package_extract_rs.results }}"
+  loop_control:
+    loop_var: extract_rs
+                   
+- name: Packages List 3
+  debug:
+    var: list_packages
+  when: ansible_verbosity > 1    
+

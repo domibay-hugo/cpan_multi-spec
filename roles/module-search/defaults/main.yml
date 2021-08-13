@@ -1,0 +1,18 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-29
+# @package RPM Packaging for Perl
+# @subpackage roles/module-search/defaults/main.yml
+
+# Default Configurations for the "module-search" Role
+#
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+#
+
+
+user_agent_search: "cpan_multi-spec Client"

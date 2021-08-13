@@ -1,0 +1,21 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-29
+# @package Host Definition
+# @subpackage roles/module-spec/defaults/main.yml
+
+# Default Configurations for the "module-spec" Role
+#
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+#
+
+
+
+source_directory: "download"
+spec_directory: "specs"
+

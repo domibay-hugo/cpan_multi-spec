@@ -44,12 +44,12 @@
       when:  module_search is defined
         or file_search is defined  
     
-    - name: Package List 3
+    - name: "Result - Packages List"
       debug:
         var: list_packages
       when: list_packages is defined        
     
-    - name: Modules Found List 3
+    - name: "Result - Modules Found List"
       debug:
         var: modules_found
       when: modules_found is defined        

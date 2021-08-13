@@ -1,7 +1,7 @@
 ---
 #
 # @author Bodo (Hugo) Barwich
-# @version 2021-07-28
+# @version 2021-07-29
 # @package RPM Packaging for Perl
 # @subpackage roles/module-search/tasks/search_file.yml
 
@@ -51,7 +51,7 @@
 - name: Execute the Search Call on the CPAN API
   command: 
     cmd: >
-      wget -U 'Ansible' --post-data='{{ cpan_query | to_json | regex_replace("/", "\\\\/") }}' -S -O - 'https://{{ api_host }}{{ api_mainpath }}'
+      wget -U '{{ user_agent_search }}' --post-data='{{ cpan_query | to_json | regex_replace("/", "\\\\/") }}' -S -O - 'https://{{ api_host }}{{ api_mainpath }}'
     warn: false
   # The "uri" Ansible Module sends a broken call that is not recognized correctly 
   #uri:

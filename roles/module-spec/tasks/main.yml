@@ -1,0 +1,29 @@
+---
+#
+# @author Bodo (Hugo) Barwich
+# @version 2021-07-29
+# @package RPM Packaging for Perl
+# @subpackage roles/module-spec/tasks/main.yml
+
+# This playbook executes the Tasks to parse the Package Dependencies 
+# and create the RPM '.spec' File 
+#
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+# - "cpan" API Access must be configured
+#
+#---------------------------------
+# External Parameters:
+# - "list_packages": Dictionary of Found Packages
+#
+
+
+
+- name: Download the Packages from the Found Package List 
+  include_tasks: download_packages.yml
+  when: list_packages is defined
+    and list_packages | length > 0
+        
