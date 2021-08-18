@@ -81,4 +81,30 @@ Search I<Perl> Modules by File Names:
     Can't locate Twiggy/Writer.pm in @INC (@INC contains: /usr/local/lib64/perl5 /usr/local/share/perl5 /usr/lib64/perl5/vendor_perl /usr/share/perl5/vendor_perl /usr/lib64/perl5 /usr/share/perl5 .).
     BEGIN failed--compilation aborted.
 
+The I<Search Query> for this File would be:
+
+    $ ansible-playbook -i 'localhost,' created_sources.yml --connection=local -e 'file_search="Twiggy/Writer.pm"'
+
+Although the exact coincidence cannot be known it gives hints where to continue searching
+
+    TASK [Result - Modules Found List] *****************************************************************
+    ok: [localhost] => {
+        "modules_found": {}
+    }
+
+As a Result a List of possible Modules is displayed
+
+    TASK [module-search : Map List Module Packages] ****************************************************
+    ok: [localhost] => (item=[u'Twiggy::TLS', u'lib/Twiggy/TLS.pm'])
+    ok: [localhost] => (item=[u'Twiggy::TLS::Info', u'lib/Twiggy/TLS/Info.pm'])
+    ok: [localhost] => (item=[u'Plack::Handler::Twiggy', u'lib/Plack/Handler/Twiggy.pm'])
+    ok: [localhost] => (item=[u'Twiggy::Server', u'lib/Twiggy/Server.pm'])
+    ok: [localhost] => (item=[u'Twiggy::Writer', u'lib/Twiggy/Server.pm'])
+    ok: [localhost] => (item=[u'Twiggy::Server::TLS', u'lib/Twiggy/Server/TLS.pm'])
+    ok: [localhost] => (item=[u'Twiggy::Prefork::Server::SS', u'lib/Twiggy/Prefork/Server/SS.pm'])
+    ok: [localhost] => (item=[u'Twiggy::Prefork::Metabolic::Server', u'lib/Twiggy/Prefork/Metabolic/Server.pm'])
+    ok: [localhost] => (item=[u'Plack::Handler::Twiggy::Prefork::Metabolic', u'lib/Plack/Handler/Twiggy/Prefork/Metabolic.pm'])
+    ok: [localhost] => (item=[u'Twiggy::Server::SS', u'lib/Twiggy/Server/SS.pm'])
+    ok: [localhost] => (item=[u'Plack::Handler::Twiggy::TLS', u'lib/Plack/Handler/Twiggy/TLS.pm'])
+
 =cut
