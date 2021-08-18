@@ -210,7 +210,7 @@ my $ixscnt = 0;
 my $ierr = 0;
 
 
-$spkgdir = `readlink -f ${srqmndir}${$srqrel}`;
+$spkgdir = `readlink -f ${srqmndir}${srqrel}`;
 #$spkgdir = abs_path($srqmndir . $srqrel);
 
 chomp $spkgdir;
