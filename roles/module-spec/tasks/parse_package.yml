@@ -24,7 +24,7 @@
 
 - name: Parse Package Source Configuration Files
   command:
-    cmd: "roles/module-spec/library/parse_package-data.pl -p=\"{{ package_data.value.package }}\" -r=\"{{ package_data.value.directory }}\" --dir=\"{{ source_directory | realpath }}\""
+    cmd: "roles/module-spec/library/parse_package-data.pl -p=\"{{ package_data.value.package }}\" -r=\"{{ package_data.value.directory }}\" --dir=\"{{ source_directory }}\""
     warn: false
   changed_when: false
   loop: "{{ list_packages | dict2items }}"
@@ -35,6 +35,7 @@
 - name: Parsed Package Configurations 1
   debug:
     var: package_dependency_rs
+  when: ansible_verbosity > 1
 
 - name: Assign Package Configurations
   set_fact:
@@ -46,6 +47,7 @@
 - name: Parsed Package Configurations 2
   debug:
     var: list_packages
+  when: ansible_verbosity > 1
                                      
 - name: Create the '.spec' Files Directory
   file: 

@@ -33,9 +33,10 @@ use strict;
 
 use Data::Dump qw(dump);
 
+use Cwd qw(abs_path);
+use Path::Tiny;
 use JSON;
 use YAML;
-use Path::Tiny;
 
 
 
@@ -209,6 +210,23 @@ my $ixscnt = 0;
 my $ierr = 0;
 
 
+$spkgdir = abs_path($srqmndir . $srqrel);
+
+if($idbg > 0
+  && $iqt < 1)
+{
+  print "pkg dir 1 dmp:\n" . dump($spkgdir); print "\n";
+}
+
+unless(defined $spkgdir)
+{
+  $spkgdir = $srqmndir . $srqrel;
+
+  print STDERR "Package '$srqpkg': Source Directory '$spkgdir' does not exist!\n";
+
+  exit 2;
+} #unless(-d $spkgdir)
+
 $spkgdir .= '/' unless($spkgdir =~ qr#/$#);
 
 unless(-d $spkgdir)
@@ -220,7 +238,7 @@ unless(-d $spkgdir)
 
 unless(chdir $spkgdir)
 {
-  print STDERR "Package '$srqpkg': Source Directory '$spkgdir' cannot be opened!\n";
+  print STDERR "Package '$srqpkg': Source Directory '$spkgdir' cannot be accessed!\n";
 
   exit 1;
 }

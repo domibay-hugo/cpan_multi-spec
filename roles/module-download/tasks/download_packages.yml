@@ -27,13 +27,13 @@
                                       
 - name: Create the Download Directory
   file: 
-    path: "{{ source_directory | realpath }}/" 
+    path: "{{ source_directory }}/" 
     state: directory 
                                       
 - name: Download Found Packages
   get_url:
     url: "{{ package_data.value.download_url }}"
-    dest: "{{ source_directory | realpath }}"
+    dest: "{{ source_directory }}"
     http_agent: "{{ user_agent_download }}"
   loop: "{{ list_packages | dict2items }}"
   loop_control:
@@ -62,7 +62,7 @@
 - name: Extract downloaded Package into Download Directory
   command:
     cmd: "tar -vxzf {{ item.file }}"
-    chdir: "{{ source_directory | realpath }}"
+    chdir: "{{ source_directory }}"
     warn: false
   changed_when: false
   loop: "{{ downloaded_files }}"
