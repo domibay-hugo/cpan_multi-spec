@@ -33,6 +33,7 @@ use strict;
 
 use Data::Dump qw(dump);
 
+use Cwd qw(abs_path);
 use Path::Tiny;
 use JSON;
 use YAML;
