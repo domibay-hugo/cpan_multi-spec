@@ -200,6 +200,8 @@ my %hshrscnf = ('builder' => '', 'arch' => 'noarch');
 my %hshftbld = ();
 my @arrftsrtd = undef;
 my $sdocfls = undef;
+my $sdocfl = undef;
+my $sdocflxt = undef;
 
 my $spkgdir = $srqmndir . $srqrel;
 my $ixscnt = 0;
@@ -258,45 +260,71 @@ if($idbg > 0
 $hshrscnf{'release.version'} = $rhshpkgcnf->{'version'};
 $hshrscnf{'distribution'} = $rhshpkgcnf->{'name'};
 $hshrscnf{'summary'} = $rhshpkgcnf->{'abstract'};
-$hshrscnf{'licence'} = '';
+$hshrscnf{'license'} = '';
 $hshrscnf{'docs'} = [];
+$hshrscnf{'examples'} = 0;
 $hshrscnf{'requires'}{'build'} = [];
 $hshrscnf{'requires'}{'runtime'} = [];
 $hshrscnf{'recommends'} = [];
 $hshrscnf{'provides'} = [];
-
-$hshrscnf{'licence'} = 'LICENCE' if(-f 'LICENCE');
 
 if(-f 'MANIFEST')
 {
   #------------------------
   #Parse MANIFEST File List
 
-  my %hshexfls = ('MANIFEST' => 0, 'LICENCE' => 0);
-  my %hshexflxts = ('.ini' => 0, '.h' => 0, '.xs' => 0, '.PL' => 0, '.pl' => 0, '.pm' => 0);
+  my %hshexfls = ('MANIFEST' => 0);
+  my %hshexflxts = ('.ini' => 0, '.h' => 0, '.c' => 0, '.xs' => 0
+    , '.PL' => 0, '.pl' => 0, '.pm' => 0, '.psgi' => 0);
 
 
   $sdocfls = path('MANIFEST')->slurp;
 
   $sdocfls =~ s/^#.*$//gm;
+
+  $hshrscnf{'examples'} = 1 if($sdocfls =~ qr#examples/#i);
+
   $sdocfls =~ s#^.*/.*$##gm;
+  $sdocfls =~ s/^\s*$//gm;
   $sdocfls =~ s#\n\n#\n#gs;
-  $sdocfls =~ s/^$//gm;
+
+  print "doc fls 1: '$sdocfls'\n" if($idbg > 0 && $iqt < 1);
 
   while($sdocfls =~ m#^([^[:space:]\.]+)(\.[a-z0-9\.]*)?$#gmi)
   {
-    unless(defined $hshexfls{$1})
+    $sdocfl = $1;
+    $sdocflxt = $2 || '';
+
+    print "doc fl: '$sdocfl', '$sdocflxt'\n" if($idbg > 0 && $iqt < 1);
+
+    if(index($sdocfl, '/') == -1)
     {
-      if(defined $2)
+      unless(defined $hshexfls{$sdocfl})
       {
-        push @{$hshrscnf{'docs'}}, ($1 . $2)
-          unless(defined $hshexflxts{$2});
-      }
-      else
-      {
-        push @{$hshrscnf{'docs'}}, $1 ;
-      }
-    } #unless(defined $hshexfls{$1})
+        if($sdocflxt ne '')
+        {
+          push @{$hshrscnf{'docs'}}, ($sdocfl . $sdocflxt)
+            unless(defined $hshexflxts{$sdocflxt});
+        }
+        else  #File without an Extension
+        {
+          if($sdocfl =~ qr/licen[sc]e/i)
+          {
+            $hshrscnf{'license'} = $sdocfl ;
+          }
+          else
+          {
+            push @{$hshrscnf{'docs'}}, $sdocfl ;
+          }
+        } #if($sdocflxt ne '')
+      } #unless(defined $hshexfls{$sdocfl})
+    }
+    else  #Sub Directory File
+    {
+      $hshrscnf{'examples'} = 1
+        if(index($sdocfl, 'examples') != -1);
+
+    } #if(index($sdocfl, '/') == -1)
   } #while($sdocfls =~ m#([^\.]+)(\..*)?$#gm)
 } #if(-f 'MANIFEST')
 
@@ -451,7 +479,7 @@ if(defined $rhshpkgcnf->{'provides'})
   }
 } #if(defined $rhshpkgcnf->{'configure_requires'})
 
-@arrftsrtd = sort{ $a <=> $b } keys %hshftbld ;
+@arrftsrtd = sort {$a cmp $b} (keys %hshftbld);
 
 foreach (@arrftsrtd)
 {

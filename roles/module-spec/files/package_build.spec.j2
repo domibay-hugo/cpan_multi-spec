@@ -88,6 +88,9 @@ rm -rf $RPM_BUILD_ROOT
 
 ./Build install destdir=$RPM_BUILD_ROOT create_packlist=0
 find $RPM_BUILD_ROOT -depth -type d -exec rmdir {} 2>/dev/null \;
+{% if package_data.value.examples == 1 %}
+find $RPM_BUILD_ROOT -type d -name 'examples' -exec mv {} $RPM_BUILD_ROOT/%{_docdir}/%{name}/ \;
+{% endif %}
 
 %{_fixperms} $RPM_BUILD_ROOT/*
 
@@ -102,12 +105,15 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-{% if package_data.value.licence != '' -%}
-%licence {{ package_data.value.licence }}
+{% if package_data.value.license != '' -%}
+%license {{ package_data.value.license }}
 {% endif %}
 {% if package_data.value.docs | length > 0 -%}
 %doc {% for doc in package_data.value.docs %}{{ doc }} {% endfor %}
 
+{% endif %}
+{% if package_data.value.examples == 1 %}
+%{_docdir}/%{name}/examples/*
 {% endif %}
 %{perl_vendorlib}/*
 %{_mandir}/man3/*
