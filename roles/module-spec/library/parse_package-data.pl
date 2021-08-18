@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # @author Bodo (Hugo) Barwich
-# @version 2021-08-02
+# @version 2021-08-18
 # @package RPM Packaging for Perl
 # @subpackage parse_package-data.pl
 

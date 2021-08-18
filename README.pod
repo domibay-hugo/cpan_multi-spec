@@ -60,7 +60,7 @@ And actually they are not.)
 
 As a Result the Distributions that are downloaded are:
 
-    TASK [Modules Found List 3] ************************************************************************
+    TASK [Result - Modules Found List] *****************************************************************
     ok: [localhost] => {
         "modules_found": {
             "Devel::StackTrace": "Devel-StackTrace",
@@ -74,9 +74,11 @@ As a Result the Distributions that are downloaded are:
         }
     }
 
+Search I<Perl> Modules by File Names:
+(This is useful to understand Project Dependencies in Software created by others)
 
-    # perl t/api/bad_request.t
-    Can't locate YAML/Tiny.pm in @INC (you may need to install the YAML::Tiny module) (@INC contains: /metacpan-api/t/api/../lib /metacpan-api/t/api/../../lib /usr/local/lib/perl5/site_perl/5.30.1/x86_64-linux-gnu /usr/local/lib/perl5/site_perl/5.30.1 /usr/local/lib/perl5/vendor_perl/5.30.1/x86_64-linux-gnu /usr/local/lib/perl5/vendor_perl/5.30.1 /usr/local/lib/perl5/5.30.1/x86_64-linux-gnu /usr/local/lib/perl5/5.30.1) at t/api/bad_request.t line 13.
-    BEGIN failed--compilation aborted at t/api/bad_request.t line 13.
+    $ perl -MTwiggy::Writer -e 'use Twiggy::Writer; print "Hello Twiggy\n";'
+    Can't locate Twiggy/Writer.pm in @INC (@INC contains: /usr/local/lib64/perl5 /usr/local/share/perl5 /usr/lib64/perl5/vendor_perl /usr/share/perl5/vendor_perl /usr/lib64/perl5 /usr/share/perl5 .).
+    BEGIN failed--compilation aborted.
 
 =cut
