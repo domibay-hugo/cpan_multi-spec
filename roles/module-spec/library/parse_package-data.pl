@@ -33,7 +33,7 @@ use strict;
 
 use Data::Dump qw(dump);
 
-use Cwd qw(abs_path);
+#use Cwd qw(abs_path);
 use Path::Tiny;
 use JSON;
 use YAML;
@@ -210,23 +210,24 @@ my $ixscnt = 0;
 my $ierr = 0;
 
 
-#$spkgdir = `readlink -f ${srqmndir}${$srqrel}`;
-$spkgdir = abs_path($srqmndir . $srqrel);
+$spkgdir = `readlink -f ${srqmndir}${$srqrel}`;
+#$spkgdir = abs_path($srqmndir . $srqrel);
 
-#chomp $spkgdir;
+chomp $spkgdir;
 
 if($idbg > 0
   && $iqt < 1)
 {
   print "pkg dir 1 dmp:\n" . dump($spkgdir); print "\n";
+} #if($idbg > 0 && $iqt < 1)
 
-  unless(defined $spkgdir)
-  {
-    $ierr = 0 + $!;
+unless(defined $spkgdir)
+{
+  $spkgdir = $srqmndir . $srqrel;
+  $ierr = 0 + $!;
 
-    print STDERR "Package '$srqpkg': Directory '$spkgdir' cannot be recognized!\n"
-      , "Message [$ierr]: '$!";
-  }
+  print STDERR "Package '$srqpkg': Directory '$spkgdir' cannot be recognized!\n"
+    , "Message [$ierr]: '$!'\n";
 }
 
 unless(defined $spkgdir
