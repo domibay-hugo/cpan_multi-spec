@@ -77,7 +77,7 @@
 - name: Assign Extracted Directory
   set_fact:
     #Build the Main Module Name from Package Name
-    list_packages: "{{ list_packages | combine( { extract_rs.item.package : list_packages[extract_rs.item.package] | combine( {'directory': extract_rs.stdout_lines[0]} ) } ) }}"
+    list_packages: "{{ list_packages | combine( { extract_rs.item.package : list_packages[extract_rs.item.package] | combine( {'directory': extract_rs.stdout | regex_search('^(.*)\\/MANIFEST$', '\\1', multiline=True, ignorecase=True)} ) } ) }}"
   loop: "{{ package_extract_rs.results }}"
   loop_control:
     loop_var: extract_rs
