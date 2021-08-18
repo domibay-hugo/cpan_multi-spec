@@ -1,16 +1,40 @@
+{#
+# @author Bodo (Hugo) Barwich
+# @version 2021-08-18
+# @package RPM Packaging for Perl
+# @subpackage roles/module-spec/files/package_build.spec.j2
+
+# This Template creates the ".spec" File for the Package
+# from the API Data and Package Configurations
 #
-# SPEC File for Perl Module Devel::GlobalDestruction
+#---------------------------------
+# Requirements:
+#
+#---------------------------------
+# Configurations:
+#
+#---------------------------------
+# External Parameters:
+# - "package_data": Dictionary with Package Meta Data
+#
+#}#
+# SPEC File for Perl Module {{ package_data.value['module.main'] }}
 #
 
 
-%define module_name Devel::GlobalDestruction
-%define distribution Devel-GlobalDestruction
+
+%define module_name {{ package_data.value['module.main'] }}
+{% if package_data.value.distribution is defined %}
+%define distribution {{ package_data.value.distribution }}
+{% else %}
+%define distribution {{ package_data.value.package }}
+{% endif %}
 
 
 Name:           perl-%{distribution}
-Version:        0.09
+Version:        {{ package_data.value['release.version'] }}
 Release:        1%{?dist}
-Summary:        Make simple lightweight record-like structures
+Summary:        {{ package_data.value.abstract }}
 License:        GPL+ or Artistic
 Group:          Development/Libraries
 URL:            https://metacpan.org/pod/%{module_name}
@@ -18,19 +42,36 @@ Source:         %{distribution}-%{version}.tar.gz
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
+{% if package_data.value.arch != 'x86_64' %}
 BuildArch:      noarch
+{% endif %}
 
-BuildRequires:  perl(Module::Build)
-BuildRequires:  perl(Test::Fatal)
-BuildRequires:  perl(Test::More) >= 0.88
+{% for req in package_data.value.requires.build %}
+{%- if req.feature == 'perl' %}
+BuildRequires:{{ "\t" }}perl >= 0:{{ req.version }}
+{%- else %}
+BuildRequires:{{ "\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ req.version }}{%- endif %}
+{%- endif %}
+
+{% endfor %}
+
+{% for req in package_data.value.requires.runtime %}
+{%- if req.feature == 'perl' %}
+Requires:{{ "\t\t" }}perl >= 0:{{ req.version }}
+{%- else %}
+Requires:{{ "\t\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ req.version }}{%- endif %}
+{%- endif %}
+
+{% endfor %}
+
+{% for req in package_data.value.recommends %}
+Recommends:{{ "\t\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ req.version }}{%- endif %}
+
+{% endfor %}
 
 
 %description
-Struct::Dumb creates record-like structure types, similar to the struct
-keyword in C, C++ or C#, or Record in Pascal. An invocation of this module
-will create a construction function which returns new object references
-with the given field values. These references all respond to lvalue methods
-that access or modify the values stored.
+{{ package_data.value.description }}
 
 
 %prep
@@ -61,6 +102,12 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%doc Changes LICENSE META.json README
+{% if package_data.value.licence != '' -%}
+%licence {{ package_data.value.licence }}
+{% endif %}
+{% if package_data.value.docs | length > 0 -%}
+%doc {% for doc in package_data.value.docs %}{{ doc }} {% endfor %}
+
+{% endif %}
 %{perl_vendorlib}/*
 %{_mandir}/man3/*

@@ -13,7 +13,6 @@
 #
 #---------------------------------
 # Configurations:
-# - "cpan" API Access must be configured
 #
 #---------------------------------
 # External Parameters:
@@ -22,8 +21,8 @@
 
 
 
-- name: Download the Packages from the Found Package List 
-  include_tasks: download_packages.yml
+- name: Parse the Configuration Files in the Source Directory 
+  include_tasks: parse_package.yml
   when: list_packages is defined
     and list_packages | length > 0
         

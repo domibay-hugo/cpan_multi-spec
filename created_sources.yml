@@ -59,3 +59,9 @@
         name: module-download
       when: list_packages | length > 0
     
+    - name: Create the '.spec' Files
+      include_role:
+        name: module-spec
+      when: list_packages | length > 0
+
+

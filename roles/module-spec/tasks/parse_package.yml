@@ -22,12 +22,43 @@
 
 
 
-- name: Parse Package Source Configurations
+- name: Parse Package Source Configuration Files
   command:
-    cmd: "roles/module-spec/library/parse_dependencies.pl -p=\"{{ package_data.package }}\" -r=\"{{ package_data.directory }}\" --dir=\"{{ source_directory }}\""
+    cmd: "roles/module-spec/library/parse_package-data.pl -p=\"{{ package_data.value.package }}\" -r=\"{{ package_data.value.directory }}\" --dir=\"{{ source_directory }}\""
     warn: false
   changed_when: false
   loop: "{{ list_packages | dict2items }}"
   loop_control:
     loop_var: package_data
   register: package_dependency_rs
+                
+- name: Parsed Package Configurations 1
+  debug:
+    var: package_dependency_rs
+
+- name: Assign Package Configurations
+  set_fact:
+    list_packages: "{{ list_packages | combine( { package_parse_rs.package_data.key : list_packages[package_parse_rs.package_data.key] | combine( package_parse_rs.stdout | from_json ) } ) }}"
+  loop: "{{ package_dependency_rs.results }}"
+  loop_control:
+    loop_var: package_parse_rs
+               
+- name: Parsed Package Configurations 2
+  debug:
+    var: list_packages
+                                     
+- name: Create the '.spec' Files Directory
+  file: 
+    path: "{{ spec_directory }}/" 
+    state: directory 
+  
+- name: Create the '.spec' File with its Builder Template
+  # Ansible template module
+  template:
+    # This is template src i.e source location
+    src: "roles/module-spec/files/package_{{ package_data.value.builder }}.spec.j2"    
+    # Destination of Remote host 
+    dest: "{{ spec_directory }}/perl-{{ package_data.value.package }}.spec"
+  loop: "{{ list_packages | dict2items }}"
+  loop_control:
+    loop_var: package_data

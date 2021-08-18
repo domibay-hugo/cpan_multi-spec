@@ -196,7 +196,10 @@ $srqmndir .= '/' unless($srqmndir =~ qr#/$#);
 #Parse the Package Build Configuration
 
 my $rhshpkgcnf = undef;
-my %hshrscnf = ($srqpkg => {'builder' => '', 'arch' => 'noarch'});
+my %hshrscnf = ('builder' => '', 'arch' => 'noarch');
+my %hshftbld = ();
+my @arrftsrtd = undef;
+my $sdocfls = undef;
 
 my $spkgdir = $srqmndir . $srqrel;
 my $ixscnt = 0;
@@ -222,11 +225,11 @@ unless(chdir $spkgdir)
 
 if(-f 'Makefile.PL')
 {
-  $hshrscnf{$srqpkg}{'builder'} = 'make';
+  $hshrscnf{'builder'} = 'make';
 }
 elsif(-f 'Build.PL')
 {
-  $hshrscnf{$srqpkg}{'builder'} = 'build';
+  $hshrscnf{'builder'} = 'build';
 }
 
 $ixscnt = `find ./ -name "*.xs" | wc -l`;
@@ -235,7 +238,7 @@ chomp $ixscnt;
 
 $ixscnt = 0 if($ixscnt eq '');
 
-$hshrscnf{$srqpkg}{'arch'} = 'x86_64' if($ixscnt);
+$hshrscnf{'arch'} = 'x86_64' if($ixscnt);
 
 if(-f 'META.yml')
 {
@@ -252,13 +255,50 @@ if($idbg > 0
   print "pkg cnf in 0 dmp:\n" . dump($rhshpkgcnf); print "\n";
 }
 
-$hshrscnf{$srqpkg}{'release.version'} = $rhshpkgcnf->{'version'};
-$hshrscnf{$srqpkg}{'distribution'} = $rhshpkgcnf->{'name'};
-$hshrscnf{$srqpkg}{'summary'} = $rhshpkgcnf->{'abstract'};
-$hshrscnf{$srqpkg}{'requires'}{'build'} = [];
-$hshrscnf{$srqpkg}{'requires'}{'runtime'} = [];
-$hshrscnf{$srqpkg}{'recommends'} = [];
-$hshrscnf{$srqpkg}{'provides'} = [];
+$hshrscnf{'release.version'} = $rhshpkgcnf->{'version'};
+$hshrscnf{'distribution'} = $rhshpkgcnf->{'name'};
+$hshrscnf{'summary'} = $rhshpkgcnf->{'abstract'};
+$hshrscnf{'licence'} = '';
+$hshrscnf{'docs'} = [];
+$hshrscnf{'requires'}{'build'} = [];
+$hshrscnf{'requires'}{'runtime'} = [];
+$hshrscnf{'recommends'} = [];
+$hshrscnf{'provides'} = [];
+
+$hshrscnf{'licence'} = 'LICENCE' if(-f 'LICENCE');
+
+if(-f 'MANIFEST')
+{
+  #------------------------
+  #Parse MANIFEST File List
+
+  my %hshexfls = ('MANIFEST' => 0, 'LICENCE' => 0);
+  my %hshexflxts = ('.ini' => 0, '.h' => 0, '.xs' => 0, '.PL' => 0, '.pl' => 0, '.pm' => 0);
+
+
+  $sdocfls = path('MANIFEST')->slurp;
+
+  $sdocfls =~ s/^#.*$//gm;
+  $sdocfls =~ s#^.*/.*$##gm;
+  $sdocfls =~ s#\n\n#\n#gs;
+  $sdocfls =~ s/^$//gm;
+
+  while($sdocfls =~ m#^([^[:space:]\.]+)(\.[a-z0-9\.]*)?$#gmi)
+  {
+    unless(defined $hshexfls{$1})
+    {
+      if(defined $2)
+      {
+        push @{$hshrscnf{'docs'}}, ($1 . $2)
+          unless(defined $hshexflxts{$2});
+      }
+      else
+      {
+        push @{$hshrscnf{'docs'}}, $1 ;
+      }
+    } #unless(defined $hshexfls{$1})
+  } #while($sdocfls =~ m#([^\.]+)(\..*)?$#gm)
+} #if(-f 'MANIFEST')
 
 if(defined $rhshpkgcnf->{'prereqs'})
 {
@@ -270,9 +310,17 @@ if(defined $rhshpkgcnf->{'prereqs'})
   {
     foreach (keys %{$rhshpkgcnf->{'prereqs'}->{'build'}->{'requires'}})
     {
-      push @{$hshrscnf{$srqpkg}{'requires'}{'build'}}, ({'feature' => $_
-        , 'version' => $rhshpkgcnf->{'prereqs'}->{'build'}->{'requires'}->{$_}});
-    }
+      if(defined $hshftbld{$_})
+      {
+        $hshftbld{$_} = $rhshpkgcnf->{'prereqs'}->{'build'}->{'requires'}->{$_}
+          if($rhshpkgcnf->{'prereqs'}->{'build'}->{'requires'}->{$_} > $hshftbld{$_});
+
+      }
+      else
+      {
+        $hshftbld{$_} = $rhshpkgcnf->{'prereqs'}->{'build'}->{'requires'}->{$_};
+      }
+    } #foreach (keys %{$rhshpkgcnf->{'prereqs'}->{'build'}->{'requires'}})
   } #if(defined $rhshpkgcnf->{'prereqs'}->{'build'}
     # && defined $rhshpkgcnf->{'prereqs'}->{'build'}->{'requires'})
 
@@ -281,9 +329,17 @@ if(defined $rhshpkgcnf->{'prereqs'})
   {
     foreach (keys %{$rhshpkgcnf->{'prereqs'}->{'configure'}->{'requires'}})
     {
-      push @{$hshrscnf{$srqpkg}{'requires'}{'build'}}, ({'feature' => $_
-        , 'version' => $rhshpkgcnf->{'prereqs'}->{'configure'}->{'requires'}->{$_}});
-    }
+      if(defined $hshftbld{$_})
+      {
+        $hshftbld{$_} = $rhshpkgcnf->{'prereqs'}->{'configure'}->{'requires'}->{$_}
+          if($rhshpkgcnf->{'prereqs'}->{'configure'}->{'requires'}->{$_} > $hshftbld{$_});
+
+      }
+      else
+      {
+        $hshftbld{$_} = $rhshpkgcnf->{'prereqs'}->{'configure'}->{'requires'}->{$_};
+      }
+    } #foreach (keys %{$rhshpkgcnf->{'prereqs'}->{'configure'}->{'requires'}})
   } #if(defined $rhshpkgcnf->{'prereqs'}->{'configure'}
     # && defined $rhshpkgcnf->{'prereqs'}->{'configure'}->{'requires'})
 
@@ -292,9 +348,17 @@ if(defined $rhshpkgcnf->{'prereqs'})
   {
     foreach (keys %{$rhshpkgcnf->{'prereqs'}->{'test'}->{'requires'}})
     {
-      push @{$hshrscnf{$srqpkg}{'requires'}{'build'}}, ({'feature' => $_
-        , 'version' => $rhshpkgcnf->{'prereqs'}->{'test'}->{'requires'}->{$_}});
-    }
+      if(defined $hshftbld{$_})
+      {
+        $hshftbld{$_} = $rhshpkgcnf->{'prereqs'}->{'test'}->{'requires'}->{$_}
+          if($rhshpkgcnf->{'prereqs'}->{'test'}->{'requires'}->{$_} > $hshftbld{$_});
+
+      }
+      else
+      {
+        $hshftbld{$_} = $rhshpkgcnf->{'prereqs'}->{'test'}->{'requires'}->{$_};
+      }
+    } #foreach (keys %{$rhshpkgcnf->{'prereqs'}->{'test'}->{'requires'}})
   } #if(defined $rhshpkgcnf->{'prereqs'}->{'test'}
     # && defined $rhshpkgcnf->{'prereqs'}->{'test'}->{'requires'})
 
@@ -304,7 +368,7 @@ if(defined $rhshpkgcnf->{'prereqs'})
     {
       foreach (keys %{$rhshpkgcnf->{'prereqs'}->{'runtime'}->{'requires'}})
       {
-        push @{$hshrscnf{$srqpkg}{'requires'}{'runtime'}}, ({'feature' => $_
+        push @{$hshrscnf{'requires'}{'runtime'}}, ({'feature' => $_
           , 'version' => $rhshpkgcnf->{'prereqs'}->{'runtime'}->{'requires'}->{$_}});
       }
     } #if(defined $rhshpkgcnf->{'prereqs'}->{'runtime'}
@@ -314,10 +378,10 @@ if(defined $rhshpkgcnf->{'prereqs'})
     {
       foreach (keys %{$rhshpkgcnf->{'prereqs'}->{'runtime'}->{'recommends'}})
       {
-        push @{$hshrscnf{$srqpkg}{'recommends'}}, ({'feature' => $_
+        push @{$hshrscnf{'recommends'}}, ({'feature' => $_
           , 'version' => $rhshpkgcnf->{'prereqs'}->{'runtime'}->{'recommends'}->{$_}});
       }
-    } #if(defined $rhshpkgcnf->{'recommends'})
+    } #if(defined $rhshpkgcnf->{'prereqs'}->{'runtime'}->{'recommends'})
   } #if(defined $rhshpkgcnf->{'prereqs'}->{'runtime'})
 }
 else  #Package does not have the 'prereqs' Structure
@@ -329,25 +393,41 @@ else  #Package does not have the 'prereqs' Structure
   {
     foreach (keys %{$rhshpkgcnf->{'build_requires'}})
     {
-      push @{$hshrscnf{$srqpkg}{'requires'}{'build'}}, ({'feature' => $_
-        , 'version' => $rhshpkgcnf->{'build_requires'}->{$_}});
-    }
+      if(defined $hshftbld{$_})
+      {
+        $hshftbld{$_} = $rhshpkgcnf->{'build_requires'}->{$_}
+          if($rhshpkgcnf->{'build_requires'}->{$_} > $hshftbld{$_});
+
+      }
+      else
+      {
+        $hshftbld{$_} = $rhshpkgcnf->{'build_requires'}->{$_}
+      }
+    } #foreach (keys %{$rhshpkgcnf->{'build_requires'}})
   } #if(defined $rhshpkgcnf->{'build_requires'})
 
   if(defined $rhshpkgcnf->{'configure_requires'})
   {
     foreach (keys %{$rhshpkgcnf->{'configure_requires'}})
     {
-      push @{$hshrscnf{$srqpkg}{'requires'}{'build'}}, ({'feature' => $_
-        , 'version' => $rhshpkgcnf->{'configure_requires'}->{$_}});
-    }
+      if(defined $hshftbld{$_})
+      {
+        $hshftbld{$_} = $rhshpkgcnf->{'configure_requires'}->{$_}
+          if($rhshpkgcnf->{'configure_requires'}->{$_} > $hshftbld{$_});
+
+      }
+      else
+      {
+        $hshftbld{$_} = $rhshpkgcnf->{'configure_requires'}->{$_}
+      }
+    } #foreach (keys %{$rhshpkgcnf->{'configure_requires'}})
   } #if(defined $rhshpkgcnf->{'configure_requires'})
 
   if(defined $rhshpkgcnf->{'requires'})
   {
     foreach (keys %{$rhshpkgcnf->{'requires'}})
     {
-      push @{$hshrscnf{$srqpkg}{'requires'}{'runtime'}}, ({'feature' => $_
+      push @{$hshrscnf{'requires'}{'runtime'}}, ({'feature' => $_
           , 'version' => $rhshpkgcnf->{'requires'}->{$_}});
     }
   } #if(defined $rhshpkgcnf->{'requires'})
@@ -356,7 +436,7 @@ else  #Package does not have the 'prereqs' Structure
   {
     foreach (keys %{$rhshpkgcnf->{'recommends'}})
     {
-      push @{$hshrscnf{$srqpkg}{'recommends'}}, ({'feature' => $_
+      push @{$hshrscnf{'recommends'}}, ({'feature' => $_
           , 'version' => $rhshpkgcnf->{'recommends'}->{$_}});
     }
   } #if(defined $rhshpkgcnf->{'recommends'})
@@ -366,10 +446,17 @@ if(defined $rhshpkgcnf->{'provides'})
 {
   foreach (keys %{$rhshpkgcnf->{'provides'}})
   {
-    push @{$hshrscnf{$srqpkg}{'provides'}}, ({'feature' => $_
+    push @{$hshrscnf{'provides'}}, ({'feature' => $_
         , 'version' => $rhshpkgcnf->{'provides'}->{$_}->{'version'}});
   }
 } #if(defined $rhshpkgcnf->{'configure_requires'})
+
+@arrftsrtd = sort{ $a <=> $b } keys %hshftbld ;
+
+foreach (@arrftsrtd)
+{
+  push @{$hshrscnf{'requires'}{'build'}}, ({'feature' => $_ , 'version' => $hshftbld{$_}});
+}
 
 if($idbg > 0
   && $iqt < 1)
@@ -381,8 +468,16 @@ if($idbg > 0
 #-------------------------------------
 #Report the Package Configuration Result
 
-print encode_json \%hshrscnf;
+if($hshrscnf{'builder'} ne '')
+{
+  print encode_json \%hshrscnf;
+}
+else
+{
+  print STDERR "Package '$srqpkg': Build System was not recognized!\n";
 
+  $ierr =  2;
+}
 
 #Communicate Error Code
 exit $ierr;
