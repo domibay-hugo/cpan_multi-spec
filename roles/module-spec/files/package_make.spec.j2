@@ -90,14 +90,17 @@ make %{?_smp_mflags}
 %install
 rm -rf $RPM_BUILD_ROOT
 
+{% if package_data.value.examples == 1 %}
+{# The Examples will get deleted in the Installation #}
+mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}
+find -type d -name 'examples' -exec mv {} $RPM_BUILD_ROOT%{_docdir}/%{name}/ \;
+{% endif %}
+
 make pure_install PERL_INSTALL_ROOT=$RPM_BUILD_ROOT
 
 find $RPM_BUILD_ROOT -type f -name .packlist -exec rm -f {} \;
 find $RPM_BUILD_ROOT -type f -name '*.bs' -size 0 -exec rm -f {} \;
 find $RPM_BUILD_ROOT -depth -type d -exec rmdir {} 2>/dev/null \;
-{% if package_data.value.examples == 1 %}
-find $RPM_BUILD_ROOT -type d -name 'examples' -exec mv {} $RPM_BUILD_ROOT/%{_docdir}/%{name}/ \;
-{% endif %}
 
 %{_fixperms} $RPM_BUILD_ROOT/*
 
