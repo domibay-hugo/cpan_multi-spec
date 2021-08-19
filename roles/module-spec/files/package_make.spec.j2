@@ -57,19 +57,19 @@ BuildRequires:{{ "\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{
 
 {% for req in package_data.value.requires.runtime %}
 {%- if req.feature == 'perl' %}
-Requires:{{ "\t\t" }}perl >= 0:{{ req.version }}
+Requires:{{ "\t" }}perl >= 0:{{ req.version }}
 {%- else %}
-Requires:{{ "\t\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ req.version }}{%- endif %}
+Requires:{{ "\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ req.version }}{%- endif %}
 {%- endif %}
 
 {% endfor %}
 {% if package_data.value.arch == 'x86_64' %}
 {# Compiled Packages need Compatibility Restrictions #}
-Requires:{{ "\t\t" }}perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
+Requires:{{ "\t" }}perl(:MODULE_COMPAT_%(eval "`%{__perl} -V:version`"; echo $version))
 {% endif %}
 
 {% for req in package_data.value.recommends %}
-Recommends:{{ "\t\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ req.version }}{%- endif %}
+Recommends:{{ "\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ req.version }}{%- endif %}
 
 {% endfor %}
 
@@ -122,9 +122,11 @@ rm -rf $RPM_BUILD_ROOT
 {% if package_data.value.examples == 1 %}
 %{_docdir}/%{name}/examples/*
 {% endif %}
-%{perl_vendorlib}/*
 {% if package_data.value.arch == 'x86_64' %}
 {# Compiled Packages provide Binary Files #}
 %{perl_vendorarch}/*
+{% else %}
+{# Compiled Packages don't include uncompiled Files #}
+%{perl_vendorlib}/*
 {% endif %}
 %{_mandir}/man3/*

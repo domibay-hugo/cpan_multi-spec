@@ -57,15 +57,15 @@ BuildRequires:{{ "\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{
 
 {% for req in package_data.value.requires.runtime %}
 {%- if req.feature == 'perl' %}
-Requires:{{ "\t\t" }}perl >= 0:{{ req.version }}
+Requires:{{ "\t" }}perl >= 0:{{ req.version }}
 {%- else %}
-Requires:{{ "\t\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ req.version }}{%- endif %}
+Requires:{{ "\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ req.version }}{%- endif %}
 {%- endif %}
 
 {% endfor %}
 
 {% for req in package_data.value.recommends %}
-Recommends:{{ "\t\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ req.version }}{%- endif %}
+Recommends:{{ "\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ req.version }}{%- endif %}
 
 {% endfor %}
 
