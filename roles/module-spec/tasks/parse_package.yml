@@ -24,7 +24,7 @@
 
 - name: Parse Package Source Configuration Files
   command:
-    cmd: "roles/module-spec/library/parse_package-data.pl -p=\"{{ package_data.value.package }}\" -r=\"{{ package_data.value.directory[0] }}\" --dir=\"{{ source_directory }}\""
+    cmd: "roles/module-spec/library/parse_package-data.pl -p=\"{{ package_data.value.package }}\" -r=\"{{ package_data.value.directory }}\" --dir=\"{{ source_directory }}\""
     warn: false
   changed_when: false
   loop: "{{ list_packages | dict2items }}"
