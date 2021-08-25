@@ -106,8 +106,10 @@ rm -rf $RPM_BUILD_ROOT
 
 {% if package_data.value.examples == 1 %}
 {# The Examples will get deleted in the Installation #}
-mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}
-find -type d -name 'examples' -exec mv {} $RPM_BUILD_ROOT%{_docdir}/%{name}/ \;
+if [ -d 'examples' ]; then
+  mkdir -p $RPM_BUILD_ROOT%{_docdir}/%{name}
+  mv examples $RPM_BUILD_ROOT%{_docdir}/%{name}/
+fi
 {% endif %}
 
 make pure_install PERL_INSTALL_ROOT=$RPM_BUILD_ROOT
