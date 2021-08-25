@@ -273,6 +273,7 @@ $ixscnt = 0 if($ixscnt eq '');
 
 $hshrscnf{'arch'} = 'x86_64' if($ixscnt);
 
+
 if(-f 'META.yml')
 {
   $rhshpkgcnf = YAML::LoadFile('META.yml');
@@ -281,6 +282,10 @@ elsif(-f 'META.json')
 {
   $rhshpkgcnf = JSON::decode_json(path('META.yml')->slurp);
 }
+else  #No Meta Data File included
+{
+  print STDERR "Package '$srqpkg': Meta Data File does not exist.\n";
+}
 
 if($idbg > 0
   && $iqt < 1)
@@ -288,9 +293,13 @@ if($idbg > 0
   print "pkg cnf in 0 dmp:\n" . dump($rhshpkgcnf); print "\n";
 }
 
-$hshrscnf{'release.version'} = $rhshpkgcnf->{'version'};
-$hshrscnf{'distribution'} = $rhshpkgcnf->{'name'};
-$hshrscnf{'summary'} = $rhshpkgcnf->{'abstract'};
+if(defined $rhshpkgcnf)
+{
+  $hshrscnf{'release.version'} = $rhshpkgcnf->{'version'};
+  $hshrscnf{'distribution'} = $rhshpkgcnf->{'name'};
+  $hshrscnf{'summary'} = $rhshpkgcnf->{'abstract'};
+} #if(defined $rhshpkgcnf)
+
 $hshrscnf{'license'} = '';
 $hshrscnf{'docs'} = [];
 $hshrscnf{'examples'} = 0;
@@ -522,6 +531,22 @@ if($idbg > 0
 {
   print "pkg cnf 1 dmp:\n" . dump(%hshrscnf) ; print "\n";
 }
+
+
+#------------------------
+#Clear empty Values
+
+foreach (keys %hshrscnf)
+{
+  delete $hshrscnf{$_} unless(defined $hshrscnf{$_});
+}
+
+if($idbg > 0
+  && $iqt < 1)
+{
+  print "pkg cnf 2 dmp:\n" . dump(%hshrscnf) ; print "\n";
+}
+
 
 
 #-------------------------------------
