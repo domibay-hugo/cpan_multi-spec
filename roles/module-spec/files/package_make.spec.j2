@@ -29,15 +29,16 @@
 {% else %}
 %define distribution {{ package_data.value.package }}
 {% endif %}
+%define release_date %(echo '{{ package_data.value.date }}' | cut -d'T' -f1)
+%define release_no %(echo %{release_date} | sed -re 's/\-//g')
 
 
 Name:           perl-%{distribution}
 Version:        {{ package_data.value['release.version'] }}
-Release:        1%{?dist}
+Release:        %{release_no}%{?dist}
 {% if package_data.value.abstract is defined %}
 Summary:        {{ package_data.value.abstract }}
 {% else %}
-{% set package_data.value.abstract = package_data.value.summary %}
 Summary:        {{ package_data.value.summary }}
 {% endif %}
 License:        GPL+ or Artistic
@@ -83,7 +84,11 @@ Recommends:{{ "\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ re
 {% if package_data.value.description is defined %}
 {{ package_data.value.description }}
 {% else %}
+{% if package_data.value.abstract is defined %}
 {{ package_data.value.abstract }}
+{% else %}
+{{ package_data.value.summary }}
+{% endif %}
 {% endif %}
 
 
