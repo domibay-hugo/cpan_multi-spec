@@ -28,10 +28,13 @@ query:
     #fields: ["path"]
 filter:
   and:
-    - term:
-        status: "latest"
+    - or:
+      - term:
+          status: "latest"
+      - term:
+          status: "cpan"
     - exists:
         #Indexed Single Files are not suitable for Packging
         field: "module.name"
-fields: ["module.name", "documentation", "release", "maturity", "status", "name", "path", "level", "download_url"]
+fields: ["module.name", "documentation", "release", "maturity", "status", "name", "path", "level"]
 size: 10

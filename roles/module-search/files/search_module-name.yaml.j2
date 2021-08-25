@@ -29,8 +29,11 @@ filter:
         - term:
             module.name: "{{ module_name }}"{{ "\n" }}
 {%- endfor %}
-    - term:
-        status: "latest"
+    - or:
+      - term:
+          status: "latest"
+      - term:
+          status: "cpan"
 fields:
   - distribution
   - module.name
