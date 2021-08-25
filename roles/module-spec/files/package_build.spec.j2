@@ -34,7 +34,12 @@
 Name:           perl-%{distribution}
 Version:        {{ package_data.value['release.version'] }}
 Release:        1%{?dist}
+{% if package_data.value.abstract is defined %}
 Summary:        {{ package_data.value.abstract }}
+{% else %}
+{% set package_data.value.abstract = package_data.value.summary %}
+Summary:        {{ package_data.value.summary }}
+{% endif %}
 License:        GPL+ or Artistic
 Group:          Development/Libraries
 URL:            https://metacpan.org/pod/%{module_name}
@@ -71,7 +76,11 @@ Recommends:{{ "\t" }}perl({{ req.feature }}){% if req.version != '0' %} >= {{ re
 
 
 %description
+{% if package_data.value.description is defined %}
 {{ package_data.value.description }}
+{% else %}
+{{ package_data.value.abstract }}
+{% endif %}
 
 
 %prep
