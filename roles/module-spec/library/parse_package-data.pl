@@ -197,9 +197,10 @@ $srqmndir .= '/' unless($srqmndir =~ qr#/$#);
 #Parse the Package Build Configuration
 
 my $rhshpkgcnf = undef;
-my %hshrscnf = ('builder' => '', 'arch' => 'noarch');
+my %hshrscnf = ('builder' => '', 'arch' => 'noarch', 'config' => 'yaml');
 my %hshftbld = ();
 my @arrftsrtd = undef;
+my $spkgcnf = undef;
 my $sdocfls = undef;
 my $sdocfl = undef;
 my $sdocflxt = undef;
@@ -276,16 +277,45 @@ $hshrscnf{'arch'} = 'x86_64' if($ixscnt);
 
 if(-f 'META.yml')
 {
-  $rhshpkgcnf = YAML::LoadFile('META.yml');
+  $spkgcnf = path('META.yml')->slurp;
 }
 elsif(-f 'META.json')
 {
-  $rhshpkgcnf = JSON::decode_json(path('META.yml')->slurp);
+  $spkgcnf = path('META.json')->slurp;
+
+  $hshrscnf{'config'} = 'json';
 }
 else  #No Meta Data File included
 {
   print STDERR "Package '$srqpkg': Meta Data File does not exist.\n";
 }
+
+if(defined $spkgcnf)
+{
+  #------------------------
+  #Check for Syntax Errors
+  #And Parse the Text Content
+
+  if(index($_ , '---') == 0)
+  {
+    $hshrscnf{'config'} = 'yaml';
+  }
+
+  if(index($_ , '{') == 0)
+  {
+    $hshrscnf{'config'} = 'json';
+  }
+
+  if($hshrscnf{'config'} eq 'yaml')
+  {
+    $rhshpkgcnf = YAML::Load $spkgcnf;
+  }
+  elsif($hshrscnf{'config'} eq 'json')
+  {
+    $rhshpkgcnf = JSON::decode_json($spkgcnf);
+  }
+} #if(defined $spkgcnf)
+
 
 if($idbg > 0
   && $iqt < 1)
