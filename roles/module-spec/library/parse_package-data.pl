@@ -296,12 +296,12 @@ if(defined $spkgcnf)
   #Check for Syntax Errors
   #And Parse the Text Content
 
-  if(index($_ , '---') == 0)
+  if(index($spkgcnf, '---') == 0)
   {
     $hshrscnf{'config'} = 'yaml';
   }
 
-  if(index($_ , '{') == 0)
+  if(index($spkgcnf, '{') == 0)
   {
     $hshrscnf{'config'} = 'json';
   }
